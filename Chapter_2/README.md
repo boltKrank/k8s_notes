@@ -26,3 +26,11 @@ Microservices are lightweight applications written in various modern programming
             Nomad is the container and workload orchestrator provided by HashiCorp.
             Docker Swarm
             Docker Swarm is a container orchestrator provided by Docker, Inc. It is part of Docker Engine.
+
+## Learning objectives
+
+
+            Define the concept of container orchestration.
+            Explain the benefits of using container orchestration.
+            Discuss different container orchestration options.
+            Discuss different container orchestration deployment options.
