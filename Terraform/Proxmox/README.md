@@ -17,3 +17,14 @@ export PM_USER="terraform-prov@pve"
 export PM_PASS="password"
 ```
 
+Debugging:
+
+export TF_LOG=debug
+
+to turn off:
+
+export TF_LOG=error
+
+https://registry.terraform.io/providers/Telmate/proxmox/latest/docs/resources/vm_qemu#disk
+
+https://austinsnerdythings.com/2021/09/01/how-to-deploy-vms-in-proxmox-with-terraform/
