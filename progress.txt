@@ -1,0 +1,21 @@
+sudo yum install -y wget
+wget https://go.dev/dl/go1.22.1.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.22.1.linux-amd64.tar.gz
+export PATH=$PATH:/usr/local/go/bin
+go version
+sudo yum install -y git
+git clone https://github.com/cloudflare/cfssl.git
+sudo yum install -y make
+cd cfssl
+make
+go get github.com/cloudflare/cfssl/cmd/cfssl
+go get github.com/cloudflare/cfssl/cmd/cfssljson
+cd bin
+sudo cp cfssl /usr/local/bin
+sudo cp cfssljson /usr/local/bin
+curl -LO 'https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl'
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+
+
+https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/03-compute-resources.md

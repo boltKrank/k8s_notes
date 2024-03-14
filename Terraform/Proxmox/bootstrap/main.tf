@@ -41,6 +41,9 @@ resource "proxmox_vm_qemu" "bootstrap-vm" {
   memory = 4096
   scsihw = "virtio-scsi-pci"
   bootdisk = "scsi0"
+
+  ciuser = var.ssh_user
+  cipassword = var.ssh_user_password
   
   disks {
     scsi {
@@ -59,6 +62,7 @@ resource "proxmox_vm_qemu" "bootstrap-vm" {
     bridge = "vmbr0"
     firewall = false
     link_down = false
+    macaddr = "b6:c1:18:57:0e:7f"
   }
 
   lifecycle {
@@ -74,20 +78,29 @@ resource "proxmox_vm_qemu" "bootstrap-vm" {
     iface eth0 inet dhcp
   EOF
 
+  connection {
+    type = "ssh"
+    user = var.ssh_user
+    private_key = file("${path.module}/keys/tom.pem")
+    host = self.default_ipv4_address
+  }
 
+  provisioner "remote-exec" {
+    inline = [ "wget https://go.dev/dl/go1.22.1.linux-amd64.tar.gz",
+               "sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.22.1.linux-amd64.tar.gz",
+               "export PATH=$PATH:/usr/local/go/bin",
+               "go version",               
+               "git clone https://github.com/cloudflare/cfssl.git",
+               "cd cfssl",
+               "make",
+               "go get github.com/cloudflare/cfssl/cmd/cfssl",
+               "go get github.com/cloudflare/cfssl/cmd/cfssljson",
+               "cd bin",
+               "sudo cp cfssl /usr/local/bin",
+               "sudo cp cfssljson /usr/local/bin",
+               "curl -LO 'https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl'",
+               "sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl"
+                ]  
+  }
 
-  ipconfig0 = "ip=192.168.20.91/24,gw=192.168.20.1"
-  # ipconfig0 = "ip=dhcp"
-  ciuser = var.ssh_user
-  cipassword = var.ssh_user_password
-
-  # sshkeys set using variables. the variable contains the text of the key.
-  sshkeys = <<EOF
-  ${var.ssh_public_key}
-  EOF
-  
-  # provisioner "remote-exec" {
-  #   inline = [ "ip a" ]    
-  # }
-  
 }
