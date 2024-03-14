@@ -1,0 +1,80 @@
+K8S the hard way:
+
+Proxmox:
+
+https://192.168.20.15:8006
+
+
+export PM_USER="terraform-prov@pve"
+export PM_PASS="Happy3232"
+export PM_API_TOKEN_ID='terraform-prov@pve!terraform'
+export PM_API_TOKEN_SECRET="4d8f5171-f8cd-4531-b1db-37c8df480143"
+
+
+
+
+Terraform API Token =   4d8f5171-f8cd-4531-b1db-37c8df480143
+
+4d8f5171-f8cd-4531-b1db-37c8df480143
+
+
+
+
+wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
+
+Installed config (from DVD):
+
+agent: 1,fstrim_cloned_disks=1
+boot: order=scsi0;ide2;net0
+cores: 2
+cpu: x86-64-v2-AES
+ide2: none,media=cdrom
+memory: 4096
+meta: creation-qemu=8.1.5,ctime=1710245913
+name: ubuntu22
+net0: virtio=BC:24:11:58:08:69,bridge=vmbr0,firewall=1
+numa: 0
+ostype: l26
+scsi0: local-zfs:vm-106-disk-0,iothread=1,size=32G
+scsihw: virtio-scsi-single
+smbios1: uuid=a59f8a29-bfb3-42ba-a327-e41b6cab5246
+sockets: 2
+vmgenid: 7dcf965e-2add-4acb-a286-3033616b51eb
+
+
+quite working yet. skip this and continue
+
+
+virt-customize -a jammy-server-cloudimg-amd64.img --run-command 'useradd tom'
+virt-customize -a jammy-server-cloudimg-amd64.img --run-command 'mkdir -p /home/tom/.ssh'
+virt-customize -a jammy-server-cloudimg-amd64.img --ssh-inject tom:file:/home/tom/.ssh/id_rsa.pub
+virt-customize -a jammy-server-cloudimg-amd64.img --run-command 'chown -R tom:tom /home/tom'
+
+qm create 9000 --name "ubuntu-2204-cloudinit-template" --memory 4096 --sockets 2 --cores 2 --net0 virtio,bridge=vmbr0
+qm importdisk 9000 jammy-server-cloudimg-amd64.img local-zfs
+qm set 9000 --scsihw virtio-scsi-single --scsi0 local-zfs:vm-9000-disk-0
+qm set 9000 --boot c --bootdisk scsi0
+qm set 9000 --ide2 local-zfs:cloudinit
+qm set 9000 --serial0 socket --vga serial0
+qm set 9000 --agent enabled=1
+
+
+# wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
+apt update -y && sudo apt install libguestfs-tools -y
+cp orig_jammy-server-cloudimg-amd64.img jammy-server-cloudimg-amd64.img
+virt-customize -a jammy-server-cloudimg-amd64.img --install qemu-guest-agent
+virt-customize -a jammy-server-cloudimg-amd64.img --root-password password:Happy3232
+virt-customize -a jammy-server-cloudimg-amd64.img --firstboot-command 'ssh-keygen -A; systemctl restart ssh.service'
+virt-customize -a jammy-server-cloudimg-amd64.img --firstboot-command '/usr/sbin/useradd --shell /bin/bash --home /home/tom --skel /etc/skel --create-home --password Happy3232 tom'
+# virt-customize -a jammy-server-cloudimg-amd64.img --run-command 'useradd tom'
+# virt-customize -a jammy-server-cloudimg-amd64.img --run-command 'mkdir -p /home/tom/.ssh'
+# virt-customize -a jammy-server-cloudimg-amd64.img --ssh-inject tom:file:/home/tom/.ssh/id_rsa.pub
+# virt-customize -a jammy-server-cloudimg-amd64.img --run-command 'chown -R tom:tom /home/tom'
+qm create 9000 --name "ubuntu-2204-cloudinit-template" --memory 4096 --sockets 2 --cores 2 --net0 virtio,bridge=vmbr0
+qm importdisk 9000 jammy-server-cloudimg-amd64.img local-zfs
+qm set 9000 --scsihw virtio-scsi-pci --scsi0 local-zfs:vm-9000-disk-0
+qm set 9000 --boot c --bootdisk scsi0
+qm set 9000 --ide2 local-zfs:cloudinit
+qm set 9000 --serial0 socket --vga serial0
+qm set 9000 --agent enabled=1
+qm template 9000
