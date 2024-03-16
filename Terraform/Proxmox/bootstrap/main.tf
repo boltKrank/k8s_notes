@@ -25,6 +25,10 @@ provider "proxmox" {
 
 }
 
+#k8s controller
+
+#k8s nodes
+
 resource "proxmox_vm_qemu" "bootstrap-vm" {
 
   name = var.bootstrap_vm_name
@@ -49,7 +53,7 @@ resource "proxmox_vm_qemu" "bootstrap-vm" {
     scsi {
       scsi0 {
         disk {
-          size = 30
+          size = 20
           storage = "local-zfs"
         }
       }
