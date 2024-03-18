@@ -85,7 +85,7 @@ resource "proxmox_vm_qemu" "kube-controller" {
   
   network {
     model = "virtio"
-    bridge = "vmbr10"
+    bridge = var.k8s_bridge
   }
 
   lifecycle {
@@ -99,9 +99,9 @@ resource "proxmox_vm_qemu" "kube-controller" {
   # ipconfig0 = "ip=192.168.14${count.index + 1}/24,gw=192.168.20.1"
   # ipconfig1 = "ip=10.20.0.4${count.index + 1}/24"
 
-  sshkeys = <<EOF
-  ${var.ssh_public_key}
-  EOF
+  # sshkeys = <<EOF
+  # ${var.ssh_public_key}
+  # EOF
 }
 
 # K8s workers (e2-standard-2 = 2 vCPU@2.25GHz, 8GB)
