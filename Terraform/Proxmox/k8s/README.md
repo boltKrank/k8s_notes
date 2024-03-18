@@ -1,5 +1,26 @@
 # Setting up k8s on Proxmox
 
+Example: (https://github.com/khanh-ph/proxmox-kubernetes) and (https://www.khanhph.com/install-proxmox-kubernetes/)
+
 ### Subnets
 
-CLI: 
+#### vmbr1
+
+```bash
+# /etc/network/interfaces
+...
+...
+# Dedicated internal network for Kubernetes cluster
+auto vmbr1
+iface vmbr1 inet static
+    address  10.0.1.1/24
+    bridge-ports none
+    bridge-stp off
+    bridge-fd 0
+
+    post-up   echo 1 > /proc/sys/net/ipv4/ip_forward
+    post-up   iptables -t nat -A POSTROUTING -s '10.0.1.0/24' -o vmbr0 -j MASQUERADE
+    post-down iptables -t nat -D POSTROUTING -s '10.0.1.0/24' -o vmbr0 -j MASQUERADE
+```
+
+
