@@ -32,3 +32,31 @@ variable "bootstrap_vm_name" {
 variable "ssh_user_password" {
   type = string
 }
+
+variable "controller_hdd_size" {
+  type = number
+}
+
+variable "worker_hdd_size" {
+  type = number
+}
+
+variable "controller_memory" {
+  type = number
+}
+
+variable "worker_memory" {
+  type = number
+}
+
+variable "k8s_bridge" {
+  type = string
+}
+
+variable "controller_count" {
+  type = number
+}
+
+variable "worker_count" {
+  type = number  
+}

@@ -53,17 +53,17 @@ provider "proxmox" {
 # done
 
 resource "proxmox_vm_qemu" "kube-controller" {
-  count = 3
+  count = var.controller_count
   name = "kube-controller-0${count.index + 1}"
   target_node = var.proxmox_host
-  vmid = "40${count.index + 1}"
+  vmid = "41${count.index + 1}"
   clone = var.template_name
   agent = 1
   os_type = "cloud-init"
   cores = 2
   sockets = 1
   cpu = "host"
-  memory = 4096
+  memory = var.controller_memory
   scsihw = "virtio-scsi-pci"
   bootdisk = "scsi0"
 
@@ -71,7 +71,7 @@ resource "proxmox_vm_qemu" "kube-controller" {
     scsi {
       scsi0 {
         disk {
-          size = 20
+          size = var.controller_hdd_size
           storage = "local-zfs"
         }
       }
@@ -85,7 +85,7 @@ resource "proxmox_vm_qemu" "kube-controller" {
   
   network {
     model = "virtio"
-    bridge = "vmbr17"
+    bridge = "vmbr10"
   }
 
   lifecycle {
@@ -94,8 +94,11 @@ resource "proxmox_vm_qemu" "kube-controller" {
     ]
   }
 
-  ipconfig0 = "ip=10.98.1.4${count.index + 1}/24,gw=10.98.1.1"
-  ipconfig1 = "ip=10.17.0.4${count.index + 1}/24"
+  # The main LAN network is 10.98.1.0/24, and the Kube internal network (on its own bridge) is 10.20.0.0/24.
+
+  # ipconfig0 = "ip=192.168.14${count.index + 1}/24,gw=192.168.20.1"
+  # ipconfig1 = "ip=10.20.0.4${count.index + 1}/24"
+
   sshkeys = <<EOF
   ${var.ssh_public_key}
   EOF
@@ -119,10 +122,10 @@ resource "proxmox_vm_qemu" "kube-controller" {
 
 
 resource "proxmox_vm_qemu" "kube-worker" {
-  count = 3
+  count = var.worker_count
   name = "kube-worker-0${count.index + 1}"
   target_node = var.proxmox_host
-  vmid = "41${count.index + 1}"
+  vmid = "51${count.index + 1}"
 
   clone = var.template_name
 
@@ -131,7 +134,7 @@ resource "proxmox_vm_qemu" "kube-worker" {
   cores = 2
   sockets = 1
   cpu = "host"
-  memory = 4096
+  memory = var.worker_memory
   scsihw = "virtio-scsi-pci"
   bootdisk = "scsi0"
 
@@ -139,7 +142,7 @@ resource "proxmox_vm_qemu" "kube-worker" {
     scsi {
       scsi0 {
         disk {
-          size = 20
+          size = var.worker_hdd_size
           storage = "local-zfs"
         }
       }
@@ -148,12 +151,12 @@ resource "proxmox_vm_qemu" "kube-worker" {
 
   network {
     model = "virtio"
-    bridge = "vmbr0"
+    bridge = var.k8s_bridge
   }
   
   network {
     model = "virtio"
-    bridge = "vmbr17"
+    bridge = "vmbr10"
   }
 
   lifecycle {
@@ -162,8 +165,11 @@ resource "proxmox_vm_qemu" "kube-worker" {
     ]
   }
 
-  ipconfig0 = "ip=10.98.1.5${count.index + 1}/24,gw=10.98.1.1"
-  ipconfig1 = "ip=10.17.0.5${count.index + 1}/24"
+  # The main LAN network is 192.168.0.0/24. gw=192.168.20.1, and the Kube internal network (on its own bridge) is 10.20.0.0/24.
+
+  # ipconfig0 = "ip=192.168.15${count.index + 1}/24,gw=192.168.20.1"
+  # ipconfig1 = "ip=10.20.0.5${count.index + 1}/24"
+
   sshkeys = <<EOF
   ${var.ssh_public_key}
   EOF

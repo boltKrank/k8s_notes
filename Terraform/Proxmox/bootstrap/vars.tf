@@ -32,3 +32,7 @@ variable "bootstrap_vm_name" {
 variable "ssh_user_password" {
   type = string
 }
+
+variable "k8s_bridge" {
+  type = string
+}
